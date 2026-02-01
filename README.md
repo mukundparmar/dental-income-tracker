@@ -11,6 +11,22 @@ make dev
 
 Open <http://localhost:8000> to view the dashboard.
 
+### Local (without Docker)
+
+1. Install Tesseract locally (required for OCR):
+   - macOS: `brew install tesseract`
+   - Ubuntu/Debian: `sudo apt-get install tesseract-ocr`
+2. Create a virtualenv and install dependencies:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r apps/api/requirements.txt
+   ```
+3. Run the API:
+   ```bash
+   python -m uvicorn apps.api.main:app --reload
+   ```
+
 ## Folder Structure
 
 ```

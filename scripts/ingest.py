@@ -1,6 +1,12 @@
 from __future__ import annotations
 
 import logging
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
 
 from apps.api.src.db.database import init_db
 from apps.api.src.services.clinic_service import seed_clinics
