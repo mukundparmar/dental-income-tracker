@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dental Income Tracker</title>
+    <style>
+      body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        background: #f5f7fb;
+        margin: 0;
+        padding: 40px;
+        color: #1f2933;
+      }
+      header {
+        margin-bottom: 24px;
+      }
+      .card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4b5563;
+      }
+      .muted {
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Dental Income Tracker</h1>
+      <p class="muted">Weekly totals and estimated pay.</p>
+    </header>
+
+    <section class="card">
+      {% if latest_week %}
+      <h2>Week of {{ latest_week }}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Clinic</th>
+            <th>Total Production</th>
+            <th>Total Collections</th>
+            <th>Estimated Pay</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rollup in rollups %}
+          <tr>
+            <td>{{ rollup["clinic_name"] or "Overall" }}</td>
+            <td>${{ "%.2f"|format(rollup["total_production"]) }}</td>
+            <td>${{ "%.2f"|format(rollup["total_collections"]) }}</td>
+            <td>${{ "%.2f"|format(rollup["estimated_pay"]) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>No rollups yet. Run the ingest, process, and rollup scripts.</p>
+      {% endif %}
+    </section>
+  </body>
+</html>
