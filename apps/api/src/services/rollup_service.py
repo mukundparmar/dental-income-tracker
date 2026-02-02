@@ -88,3 +88,9 @@ def generate_weekly_rollups(week_start: date) -> list[int]:
 
     logger.info("Generated %s rollups for week %s", len(rollup_ids), week_start)
     return rollup_ids
+
+
+def refresh_weekly_rollups(week_start: date) -> list[int]:
+    with get_connection() as connection:
+        connection.execute("DELETE FROM rollups WHERE week_start = ?", (week_start.isoformat(),))
+    return generate_weekly_rollups(week_start)

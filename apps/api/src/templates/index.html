@@ -21,6 +21,59 @@
         padding: 24px;
         box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       }
+      .card + .card {
+        margin-top: 24px;
+      }
+      .banner {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+      }
+      .banner.success {
+        background: #ecfdf3;
+        color: #106c3b;
+        border: 1px solid #bbf7d0;
+      }
+      .banner.error {
+        background: #fef2f2;
+        color: #b42318;
+        border: 1px solid #fecaca;
+      }
+      .upload-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        align-items: end;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        color: #4b5563;
+      }
+      input[type="file"],
+      input[type="date"],
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        font-size: 0.95rem;
+      }
+      button {
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: none;
+        background: #1f2933;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #111827;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -47,6 +100,42 @@
       <h1>Dental Income Tracker</h1>
       <p class="muted">Weekly totals and estimated pay.</p>
     </header>
+
+    <section class="card">
+      <h2>Upload a production report</h2>
+      <p class="muted">
+        Attach the image from your phone, pick the clinic, and we'll process it right away.
+      </p>
+      {% if upload_message %}
+      <div class="banner success">{{ upload_message }}</div>
+      {% endif %}
+      {% if upload_error %}
+      <div class="banner error">{{ upload_error }}</div>
+      {% endif %}
+      <form method="post" action="/upload" enctype="multipart/form-data">
+        <div class="upload-grid">
+          <div>
+            <label for="clinic_id">Clinic</label>
+            <select id="clinic_id" name="clinic_id" required>
+              {% for clinic in clinics %}
+              <option value="{{ clinic['id'] }}">{{ clinic['name'] }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="entry_date">Entry date</label>
+            <input id="entry_date" name="entry_date" type="date" required />
+          </div>
+          <div>
+            <label for="file">Image</label>
+            <input id="file" name="file" type="file" accept="image/*" required />
+          </div>
+          <div>
+            <button type="submit">Upload &amp; update totals</button>
+          </div>
+        </div>
+      </form>
+    </section>
 
     <section class="card">
       {% if latest_week %}
