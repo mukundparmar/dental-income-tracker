@@ -10,6 +10,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from apps.api.src.db.database import get_connection
+from apps.api.src.services.clinic_service import get_or_create_clinic
 from apps.api.src.services.process_service import process_new_uploads
 from apps.api.src.services.rollup_service import refresh_weekly_rollups
 from apps.api.src.utils.config import load_settings
@@ -19,7 +20,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="apps/api/src/templates")
 
 
-def _get_dashboard_data() -> tuple[str | None, list[dict], list[dict]]:
+def _get_dashboard_data() -> tuple[str | None, int | None, list[dict], list[dict]]:
     with get_connection() as connection:
         latest_week = connection.execute(
             "SELECT week_start FROM rollups ORDER BY week_start DESC LIMIT 1"
@@ -37,15 +38,14 @@ def _get_dashboard_data() -> tuple[str | None, list[dict], list[dict]]:
                 """,
                 (latest_week["week_start"],),
             ).fetchall()
-        clinics = connection.execute(
-            "SELECT id, name FROM clinics ORDER BY name"
-        ).fetchall()
+        clinics = connection.execute("SELECT id, name FROM clinics ORDER BY name").fetchall()
 
-    return (
-        latest_week["week_start"] if latest_week else None,
-        rollups,
-        clinics,
-    )
+    week_start = latest_week["week_start"] if latest_week else None
+    week_number = None
+    if week_start:
+        week_number = date.fromisoformat(week_start).isocalendar().week
+
+    return (week_start, week_number, rollups, clinics)
 
 
 def _build_dashboard_response(
@@ -53,12 +53,13 @@ def _build_dashboard_response(
     upload_message: str | None = None,
     upload_error: str | None = None,
 ) -> templates.TemplateResponse:
-    latest_week, rollups, clinics = _get_dashboard_data()
+    latest_week, week_number, rollups, clinics = _get_dashboard_data()
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "latest_week": latest_week,
+            "week_number": week_number,
             "rollups": rollups,
             "clinics": clinics,
             "upload_message": upload_message,
@@ -75,10 +76,47 @@ def get_dashboard(request: Request):
     return _build_dashboard_response(request, upload_message=upload_message)
 
 
+@router.get("/details")
+def get_details(request: Request):
+    with get_connection() as connection:
+        detail_rows = connection.execute(
+            """
+            SELECT entry_details.*, uploads.entry_date AS upload_date,
+                   uploads.filename, clinics.name AS clinic_name
+            FROM entry_details
+            JOIN uploads ON uploads.id = entry_details.upload_id
+            LEFT JOIN clinics ON clinics.id = uploads.clinic_id
+            ORDER BY COALESCE(entry_details.entry_date, uploads.entry_date) DESC,
+                     entry_details.id DESC
+            """
+        ).fetchall()
+
+    details = []
+    for row in detail_rows:
+        entry_date = row["entry_date"] or row["upload_date"]
+        week_number = None
+        if entry_date:
+            week_number = date.fromisoformat(entry_date).isocalendar().week
+        details.append(
+            {
+                **dict(row),
+                "entry_date": entry_date,
+                "week_number": week_number,
+            }
+        )
+
+    return templates.TemplateResponse(
+        "details.html",
+        {
+            "request": request,
+            "details": details,
+        },
+    )
+
 @router.post("/upload")
 async def post_upload(
     request: Request,
-    clinic_id: int = Form(...),
+    clinic_id: int | None = Form(None),
     entry_date: str = Form(...),
     file: UploadFile = File(...),
 ):
@@ -104,6 +142,9 @@ async def post_upload(
 
     with destination.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+
+    if clinic_id is None:
+        clinic_id = get_or_create_clinic("Unassigned")
 
     created_at = datetime.now(tz=timezone.utc).isoformat()
     with get_connection() as connection:

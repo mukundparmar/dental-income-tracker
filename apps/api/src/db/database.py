@@ -53,6 +53,22 @@ def init_db() -> None:
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (clinic_id) REFERENCES clinics(id)
             );
+
+            CREATE TABLE IF NOT EXISTS entry_details (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                upload_id INTEGER NOT NULL,
+                entry_date TEXT,
+                patient_name TEXT,
+                tooth_number TEXT,
+                treatment_code TEXT,
+                description TEXT,
+                charges REAL,
+                payments REAL,
+                phone_number TEXT,
+                raw_line TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (upload_id) REFERENCES uploads(id) ON DELETE CASCADE
+            );
             """
         )
 

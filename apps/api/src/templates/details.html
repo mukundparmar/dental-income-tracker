@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dental Income Tracker - Details</title>
+    <style>
+      body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        background: #f5f7fb;
+        margin: 0;
+        padding: 40px;
+        color: #1f2933;
+      }
+      header {
+        margin-bottom: 24px;
+      }
+      .card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: top;
+      }
+      th {
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4b5563;
+      }
+      .muted {
+        color: #6b7280;
+      }
+      a {
+        color: #2563eb;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Detailed Entries</h1>
+      <p class="muted">Extracted line-item details from uploaded reports.</p>
+      <p class="muted"><a href="/">Back to dashboard</a></p>
+    </header>
+
+    <section class="card">
+      {% if details %}
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Week</th>
+            <th>Clinic</th>
+            <th>Patient</th>
+            <th>Tooth</th>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Charges</th>
+            <th>Payments</th>
+            <th>Phone</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for detail in details %}
+          <tr>
+            <td>{{ detail["entry_date"] or "-" }}</td>
+            <td>{{ detail["week_number"] or "-" }}</td>
+            <td>{{ detail["clinic_name"] or "Unassigned" }}</td>
+            <td>{{ detail["patient_name"] or "-" }}</td>
+            <td>{{ detail["tooth_number"] or "-" }}</td>
+            <td>{{ detail["treatment_code"] or "-" }}</td>
+            <td>{{ detail["description"] or "-" }}</td>
+            <td>
+              {% if detail["charges"] is not none %}
+              ${{ "%.2f"|format(detail["charges"]) }}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td>
+              {% if detail["payments"] is not none %}
+              ${{ "%.2f"|format(detail["payments"]) }}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td>{{ detail["phone_number"] or "-" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>No detailed entries yet. Upload a report and process OCR to see line items.</p>
+      {% endif %}
+    </section>
+  </body>
+</html>
