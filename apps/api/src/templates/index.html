@@ -93,6 +93,13 @@
       .muted {
         color: #6b7280;
       }
+      a {
+        color: #2563eb;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -104,7 +111,7 @@
     <section class="card">
       <h2>Upload a production report</h2>
       <p class="muted">
-        Attach the image from your phone, pick the clinic, and we'll process it right away.
+        Attach the image from your phone and we'll detect the clinic and week automatically.
       </p>
       {% if upload_message %}
       <div class="banner success">{{ upload_message }}</div>
@@ -114,14 +121,6 @@
       {% endif %}
       <form method="post" action="/upload" enctype="multipart/form-data">
         <div class="upload-grid">
-          <div>
-            <label for="clinic_id">Clinic</label>
-            <select id="clinic_id" name="clinic_id" required>
-              {% for clinic in clinics %}
-              <option value="{{ clinic['id'] }}">{{ clinic['name'] }}</option>
-              {% endfor %}
-            </select>
-          </div>
           <div>
             <label for="entry_date">Entry date</label>
             <input id="entry_date" name="entry_date" type="date" required />
@@ -139,7 +138,12 @@
 
     <section class="card">
       {% if latest_week %}
-      <h2>Week of {{ latest_week }}</h2>
+      <h2>
+        Week of {{ latest_week }}
+        {% if week_number %}
+        <span class="muted">(Week {{ week_number }})</span>
+        {% endif %}
+      </h2>
       <table>
         <thead>
           <tr>
@@ -163,6 +167,9 @@
       {% else %}
       <p>No rollups yet. Run the ingest, process, and rollup scripts.</p>
       {% endif %}
+      <p class="muted">
+        <a href="/details">View detailed entries</a>
+      </p>
     </section>
   </body>
 </html>
